@@ -2,15 +2,47 @@
 <html lang="en">
 <meta charset="utf-8">
   <body>
+  <label>Americas<input type="checkbox" name="Americas" value="Americas" title="Americas" onchange"('changed!')"></input></label>
+  <label>Africa<input type="checkbox" name="Americas" value="Americas" title="Americas" onchange"('changed!')"></input></label>
+  <label>Asia<input type="checkbox" name="Americas" value="Americas" title="Americas" onchange"('changed!')"></input></label>
+  <label>Europe<input type="checkbox" name="Americas" value="Americas" title="Americas" onchange"('changed!')"></input></label>
+  <label>Oceania<input type="checkbox" name="Americas" value="Americas" title="Americas" onchange"('changed!')"></input></label>
+  <p></p>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script>
 
       var desired_columns = ["name", "continent", "gdp", "life_expectancy", "population", "year"];
-      var commas = d3.format(",");
-      var prefix = d3.formatPrefix(1.1e3);
       
-      d3.json("data/countries_2012.json", function(error, data){
+      var commas = d3.format(",");
 
+      var isGrey = false;
+      
+      var sortOrder = false;
+      
+      var checkboxes = ["Americas", "Africa", "Asia", "Europe", "Oceania"];
+      function greyIt(p){
+        p.style("background-color", function(){
+              if(isGrey){
+                isGrey = !isGrey;
+                return "#d3d3d3";}
+              else{
+                isGrey = !isGrey;
+                return "#FFFFFF"}})
+      }
+
+      function filter_cols(new_data){
+
+        var rows = 
+        d3.selectAll("input").each(function(d) { 
+
+          if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
+             // Current name of the checkbox is d3.select(this).attr("name")
+               }       
+        })
+      }
+
+      d3.json("data/countries_2012.json", function(error, data){
+      
 
         var columns = Object.keys(data[0]);
      
@@ -22,26 +54,60 @@
         table.append("caption")
           .html("World Countries Ranking");
 
+        table.append("label")
+          .data(checkboxes)
+          .enter()
+          .append("input")
+          .text(function(d) {return d; });
+
         thead.append("tr").selectAll("th")
         .data(desired_columns)
         .enter()
         .append("th")
         .text(function(d) { return d; })
         .on("click", function(header, i) {
-           tbody.selectAll("tr").sort(function(a, b) {
-           return d3.descending(a[header], b[header]);
-              });
-             });
+          sortOrder = !sortOrder;
+          isGrey = !isGrey;
+          greyIt(tbody.selectAll("tr").sort(function(a, b){
+           if(isNaN(a[header])){
+              if(sortOrder){
+                if(d3.ascending(a[header], b[header])==0){
+                  return d3.ascending(a.name, b.name);}
+                else return d3.ascending(a[header], b[header]);}
+              else{
+                if(d3.descending(a[header], b[header])==0){
+                  return d3.descending(a.name, b.name);
+                }
+                else return d3.descending(a[header], b[header]);}
+              
+            }
+           else{
+             if(sortOrder){
+                if(d3.ascending(a[header], b[header])==0){
+                  return d3.ascending(a.name, b.name);
+                }
+                else return d3.ascending(a[header], b[header]);}
+             else{
+                 if(d3.descending(a[header], b[header])==0){
+                  return d3.descending(a.name, b.name);}
+                else return d3.descending(a[header], b[header]);}
+            }             
+           }
+          )
+             )});
+
 
         var rows = tbody.selectAll("tr.row")
           .data(data)
           .enter()
-          .append("tr").attr("class", "row");
-
+          .append("tr").attr("class", "row")
+        greyIt(rows);  
+ 
+ 
         var cells = rows.selectAll("td")
           .data(function(row) {
               return desired_columns.map(function(column) {
-                  return row[column];
+              return row[column];
               });
           })
           .enter()
@@ -54,10 +120,9 @@
                                   return commas(d);
                                  else
                                   return d;})
+           
  
-
-
-      });
+       });
     </script> 
   </body>
 </html>
